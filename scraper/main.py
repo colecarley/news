@@ -8,18 +8,18 @@ load_dotenv()
 BASE_URL = "http://127.0.0.1:8000/"
 API_KEY = os.getenv("API_KEY")
 
-def get_categories():
+def get_categories() -> list[tuple[str, list[str]]]:
     response = requests.get(BASE_URL + "categories/")
     return list(map(lambda x: (x["name"], x["keywords"]), response.json()))
 
-def create_url(keyword):
+def create_url(keyword: str) -> str:
        return ("https://newsapi.org/v2/everything?"
               f"q={keyword}&"
               f"from={date.today().isoformat()}&"
               "sortBy=popularity&"
               f"apiKey={API_KEY}")
 
-def get_related_articles(keywords):
+def get_related_articles(keywords: list[str]) -> list[str]:
        """response from news api
        {
        status: str,
@@ -39,7 +39,7 @@ def get_related_articles(keywords):
        }
        """
 
-       content = []
+       content: list[str] = []
        for keyword in keywords:
               create_url(keyword)
               response = requests.get(create_url(keyword))
