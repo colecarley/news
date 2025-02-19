@@ -1,14 +1,19 @@
-import anthropic
+from anthropic import AsyncAnthropic
 
-client = anthropic.Anthropic(
-    # defaults to os.environ.get("ANTHROPIC_API_KEY")
-    api_key="my_api_key",
-)
-message = client.messages.create(
-    model="claude-3-5-sonnet-20241022",
-    max_tokens=1024,
-    messages=[
-        {"role": "user", "content": "Hello, Claude"}
-    ]
-)
-print(message.content)
+async def summarize_news_articles(articles: list[str], client: AsyncAnthropic) -> list[str]:
+    summaries = []
+    for article in articles:
+        response = await client.messages.create(
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Summarize the following news article and highlight key points: {article}",
+                }
+            ],
+            model="claude-3-5-sonnet-latest",
+            temperature=0.2,
+        )
+        summaries.append(response.content)
+
+    return summaries
