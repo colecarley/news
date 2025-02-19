@@ -60,4 +60,4 @@ class Database:
     def get_user_categories(self, user: User) -> list[Category]:
         return [c for c in self.get_categories() if c.name in user.categories]
 
-    
+

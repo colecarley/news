@@ -6,17 +6,11 @@ from database import Database
 app = FastAPI()
 db = Database()
 
-origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
-]
+origins = [ "*" ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -31,7 +25,8 @@ async def get_users():
 
 @app.post("/users/create")
 async def create_user(user: User):
-    return db.create_user(user)
+    db.create_user(user)
+    return user
 
 @app.post("/users/update")
 async def update_user(user: User):
