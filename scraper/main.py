@@ -14,10 +14,10 @@ def get_categories():
 
 def create_url(keyword):
        return ('https://newsapi.org/v2/everything?'        
-              f'q={keyword}&'
-              f'from={date.today().isoformat()}&'
-              'sortBy=popularity&'
-              f'apiKey={API_KEY}')
+              f"q={keyword}&"
+              f"from={date.today().isoformat()}&"
+              "sortBy=popularity&"
+              f"apiKey={API_KEY}")
 
 def get_related_articles(keywords):
        """response from news api
