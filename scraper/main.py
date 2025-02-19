@@ -54,6 +54,5 @@ def get_related_articles(keywords):
 keywords_by_category_name = get_categories()
 for category_name, keywords in keywords_by_category_name:
        articles = get_related_articles(keywords)
-       print(len(articles))
        # call the llm api to summarize the articles 
        
