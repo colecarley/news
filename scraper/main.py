@@ -13,7 +13,7 @@ def get_categories():
     return list(map(lambda x: (x["name"], x["keywords"]), response.json()))
 
 def create_url(keyword):
-       return ('https://newsapi.org/v2/everything?'        
+       return ("https://newsapi.org/v2/everything?"
               f"q={keyword}&"
               f"from={date.today().isoformat()}&"
               "sortBy=popularity&"
