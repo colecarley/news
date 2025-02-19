@@ -5,7 +5,15 @@ class Database:
         self.db = {
             'users': [],
             'summarizations': [],
-            'categories': []
+            'categories': [
+                # fake data
+                Category(name='Business', keywords=[ 'business' ]),
+                Category(name='Entertainment', keywords=[ 'entertainment' ]),
+                Category(name='Health', keywords=[ 'health' ]),
+                Category(name='Science', keywords=[ 'science' ]),
+                Category(name='Sports', keywords=[ 'sports' ]),
+                Category(name='Technology', keywords=[ 'technology' ])
+            ]
         }
     
     def get_users(self) -> list[User]:
