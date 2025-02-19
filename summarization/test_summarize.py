@@ -3,8 +3,7 @@ import os
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
-
-from summarization.summarize_articles import summarize_news_articles
+from summarization.utils.summarize_articles import summarize_news_articles
 
 load_dotenv() # Load environment variables from .env file
 
