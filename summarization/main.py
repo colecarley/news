@@ -1,13 +1,9 @@
-from dotenv import load_dotenv
-from anthropic import AsyncAnthropic
-from summarization.utils.summarize import summarize_news_articles, summarize_news_article
 import os
 
-load_dotenv() # Load environment variables from .env file
+from summarization.utils.summarize import summarize_news_articles, summarize_news_article
+from common.clients import get_anthropic_client
 
-client = AsyncAnthropic(
-    api_key=os.environ.get("ANTHROPIC_API_KEY"),
-)
+client = get_anthropic_client()
 
 async def summarize_articles(articles: list[str]) -> list[str]:
     """
