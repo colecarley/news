@@ -1,25 +1,42 @@
+# STL
 import requests
-from datetime import date 
-from dotenv import load_dotenv
+from datetime import datetime, date, timedelta, timezone
 import os
+import asyncio
+
+# Third Party
+from dotenv import load_dotenv
+
+# Local
+from summarization.main import summarize_articles, summarize_article
+from backend.models import Summarization, Category
 
 load_dotenv()
 
 BASE_URL = "http://127.0.0.1:8000/"
 API_KEY = os.getenv("API_KEY")
 
+### ------------------- 1. Utility Functions ------------------- ###
+
+def convert_news_api_timestamp_to_int(timestamp: str) -> int:
+    """
+    Convert a NewsAPI Timestamp in format "YYYY-MM-DDTHH:MM:SSZ string into a Unix integer timestamp.
+    """
+    dt = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    return int(dt.timestamp())
+
 def get_categories() -> list[tuple[str, list[str]]]:
     response = requests.get(BASE_URL + "categories/")
-    return list(map(lambda x: (x["name"], x["keywords"]), response.json()))
+    return [(x["name"], x["keywords"]) for x in response.json()]
 
-def create_url(keyword: str) -> str:
+def create_news_api_url(keyword: str, days_ago: int = 1) -> str:
        return ("https://newsapi.org/v2/everything?"
               f"q={keyword}&"
-              f"from={date.today().isoformat()}&"
+              f"from={(date.today() - timedelta(days=days_ago)).isoformat()}&"
               "sortBy=popularity&"
               f"apiKey={API_KEY}")
 
-def get_related_articles(keywords: list[str]) -> list[str]:
+def get_related_articles(keywords: list[str]) -> list[dict]:
        """response from news api
        {
        status: str,
@@ -41,8 +58,7 @@ def get_related_articles(keywords: list[str]) -> list[str]:
 
        content: list[str] = []
        for keyword in keywords:
-              create_url(keyword)
-              response = requests.get(create_url(keyword))
+              response = requests.get(create_news_api_url(keyword))
               json = response.json()
 
               if json["status"] == "ok":
@@ -51,8 +67,69 @@ def get_related_articles(keywords: list[str]) -> list[str]:
                      print(f"Failed to fetch articles for {keyword}")
        return content
 
-keywords_by_category_name = get_categories()
-for category_name, keywords in keywords_by_category_name:
-       articles = get_related_articles(keywords)
-       # call the llm api to summarize the articles 
-       
+### ------------------- 2. Summarization & Storage ------------------- ###
+
+async def send_summarization_to_backend(summary_obj: Summarization) -> None:
+    """
+    Send the summarized article to the backend via API.
+    """
+    try:
+        print(f"JSON SUMMARY OBJ: {summary_obj.model_dump()}")
+        response = await asyncio.to_thread(
+            requests.post, f"{BASE_URL}/summarizations/create", json=summary_obj.model_dump()
+        )
+        if response.status_code == 200:
+            print(f"Created summarization for: {summary_obj.link}")
+        else:
+            print(f"Failed to create summarization: {summary_obj.link} (Status: {response.status_code})")
+    except Exception as e:
+        print(f"Error sending summarization: {e}")
+
+async def process_category(category_name: str, keywords: list[str]) -> None:
+    """
+    Process a news category: Fetch articles, summarize, and send to backend.
+    """
+
+    print(f"Processing category: {category_name}")
+
+    articles = get_related_articles(keywords)
+    
+    if not articles:
+        print(f"No articles found for category {category_name}")
+        return
+
+    # Select a subset of articles to avoid overwhelming the summarization API
+    article_subset = articles[:3] # TODO: find a better way to handle this
+
+    summaries = await summarize_articles(article_subset)
+
+    summarization_objects = [
+        Summarization(
+            summarization=summaries[i], 
+            link=article["url"],
+            timestamp=convert_news_api_timestamp_to_int(article["publishedAt"]),
+            category=category_name
+        )
+        for i, article in enumerate(article_subset)
+    ]
+
+    # Send summarizations to backend concurrently
+    await asyncio.gather(*(send_summarization_to_backend(summary) for summary in summarization_objects))
+
+
+### ------------------- 3. Main Script ------------------- ###
+async def main():
+
+    categories = get_categories()
+    if not categories:
+        print("No categories retrieved. Exiting.")
+        return
+
+    # TEST: Process a single category
+    categories = categories[:1] # TODO: Remove this line
+
+    # Process each category concurrently
+    await asyncio.gather(*(process_category(name, keywords) for name, keywords in categories))
+
+if __name__ == "__main__":
+      asyncio.run(main())

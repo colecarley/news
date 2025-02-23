@@ -9,20 +9,20 @@ client = AsyncAnthropic(
     api_key=os.environ.get("ANTHROPIC_API_KEY"),
 )
 
-def summarize_articles(articles: list[str]) -> list[str]:
+async def summarize_articles(articles: list[str]) -> list[str]:
     """
     Summarize a list of news articles using an anthropic model.
 
     Returns:
         list[str]: A list of summaries for the input news articles.
     """
-    return summarize_news_articles(articles=articles, client=client)
+    return await summarize_news_articles(articles=articles, client=client)
 
-def summarize_article(article: str) -> str:
+async def summarize_article(article: str) -> str:
     """
     Summarize a news article using an anthropic model.
 
     Returns:
         (str): A summary for the input news article.
     """
-    return summarize_news_article(article=article, client=client)
+    return await summarize_news_article(article=article, client=client)
