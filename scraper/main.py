@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 # Local
 from summarization.main import summarize_articles, summarize_article
+from scraper.utils import convert_news_api_timestamp_to_int
 from backend.models import Summarization, Category
 
 load_dotenv()
@@ -17,13 +18,6 @@ BASE_URL = "http://127.0.0.1:8000/"
 API_KEY = os.getenv("API_KEY")
 
 ### ------------------- 1. Utility Functions ------------------- ###
-
-def convert_news_api_timestamp_to_int(timestamp: str) -> int:
-    """
-    Convert a NewsAPI Timestamp in format "YYYY-MM-DDTHH:MM:SSZ string into a Unix integer timestamp.
-    """
-    dt = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-    return int(dt.timestamp())
 
 def get_categories() -> list[tuple[str, list[str]]]:
     response = requests.get(BASE_URL + "categories/")
