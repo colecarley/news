@@ -16,13 +16,3 @@ class Summarization(BaseModel):
     link: str
     timestamp: int
     category: str
-        
-class NewsApiArticle(BaseModel):
-    source: dict[str, str] # id, name
-    author: str
-    title: str
-    description: str
-    url: str
-    urlToImage: str
-    publishedAt: str
-    content: str
