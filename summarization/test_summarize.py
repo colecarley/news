@@ -4,11 +4,10 @@ from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 from summarization.utils.summarize import summarize_news_articles
-
-load_dotenv() # Load environment variables from .env file
+from common.config import ANTHROPIC_API_KEY
 
 client = AsyncAnthropic(
-    api_key=os.environ.get("ANTHROPIC_API_KEY"),
+    api_key=ANTHROPIC_API_KEY,
 )
 
 if __name__ == "__main__":

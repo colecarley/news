@@ -3,7 +3,11 @@ from models import *
 class Database:
     def __init__(self):
         self.db = {
-            'users': [],
+            'users': [
+                # fake data
+                User(name='John Doe', email='johndoe123@gmail.com', frequency=1, categories=[ 'Business', 'Entertainment' ]),
+                User(name='Jane Smith', email='janedoe234@yahoo.com', frequency=7, categories=[ 'Business', 'Science' ]),
+            ],
             'summarizations': [],
             'categories': [
                 # fake data

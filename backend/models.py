@@ -16,5 +16,3 @@ class Summarization(BaseModel):
     link: str
     timestamp: int
     category: str
-        
-
