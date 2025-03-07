@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 # Local
 from summarization.main import summarize_articles, summarize_article
-from scraper.utils import convert_news_api_timestamp_to_int
+from scraper.utils.news_api import convert_news_api_timestamp_to_int
 from backend.models import Summarization, Category
 from common.config import BASE_URL, NEWS_API_KEY
 
@@ -49,7 +49,7 @@ def get_related_articles(keywords: list[str]) -> list[dict]:
        for keyword in keywords:
               response = requests.get(create_news_api_url(keyword))
               json = response.json()
-
+              print("Content:", json)
               if json["status"] == "ok":
                     content.extend(json["articles"])
               else:
@@ -80,27 +80,38 @@ async def process_category(category_name: str, keywords: list[str]) -> None:
 
     articles = get_related_articles(keywords)
     
-    if not articles:
-        print(f"No articles found for category {category_name}")
-        return
+    print(articles, type(articles))
+    assert articles, f"No articles found for category {category_name}"
+
 
     # Select a subset of articles to avoid overwhelming the summarization API
     article_subset = articles[:3] # TODO: find a better way to handle this
 
-    summaries = await summarize_articles(article_subset)
+    # summaries = await summarize_articles(article_subset)
 
-    summarization_objects = [
-        Summarization(
-            summarization=summaries[i], 
+    # summarization_objects = [
+    #     Summarization(
+    #         summarization=summaries[i], 
+    #         link=article["url"],
+    #         timestamp=convert_news_api_timestamp_to_int(article["publishedAt"]),
+    #         category=category_name
+    #     )
+    #     for i, article in enumerate(article_subset)
+    # ]
+
+    for article in article_subset:
+         await (send_summarization_to_backend(
+            Summarization(
+            summarization=summarize_article(article), 
             link=article["url"],
             timestamp=convert_news_api_timestamp_to_int(article["publishedAt"]),
             category=category_name
         )
-        for i, article in enumerate(article_subset)
-    ]
+         ))
+
 
     # Send summarizations to backend concurrently
-    await asyncio.gather(*(send_summarization_to_backend(summary) for summary in summarization_objects))
+    # await asyncio.gather(*(send_summarization_to_backend(summary) for summary in summarization_objects))
 
 
 ### ------------------- 3. Main Script ------------------- ###
@@ -113,6 +124,7 @@ async def main():
 
     # TEST: Process a single category
     categories = categories[:1] # TODO: Remove this line
+    categories = [("Science", ["science"])] # TODO: Remove this line
 
     # Process each category concurrently
     await asyncio.gather(*(process_category(name, keywords) for name, keywords in categories))
