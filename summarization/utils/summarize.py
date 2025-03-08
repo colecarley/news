@@ -1,5 +1,6 @@
 from anthropic import AsyncAnthropic
 from anthropic.types.message import Message
+from common.config import DEV
 
 async def summarize_news_articles(articles: list[str], client: AsyncAnthropic) -> list[str]:
     """
@@ -27,6 +28,6 @@ async def summarize_news_article(article: str, client: AsyncAnthropic) -> str:
                 "content": f"Summarize the following news article and highlight key points:\n {article}",
             }
         ],
-        model="claude-3-5-sonnet-latest",
+        model = "claude-3-5-haiku-20241022" if DEV else "claude-3-5-sonnet-latest",
         temperature=0.2,
     )).content[0].text

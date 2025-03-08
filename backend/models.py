@@ -9,12 +9,9 @@ class User(BaseModel):
     email: str
     frequency: int
     categories: list[str]
-        
 
 class Summarization(BaseModel):
     summarization: str
     link: str
     timestamp: int
     category: str
-        
-
