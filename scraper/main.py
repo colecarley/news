@@ -14,7 +14,6 @@ from common.config import BASE_URL, NEWS_API_KEY
 
 ### ------------------- 1. Utility Functions ------------------- ###
 
-
 def get_categories() -> list[tuple[str, list[str]]]:
     response = requests.get(BASE_URL + "categories/")
     return [(x["name"], x["keywords"]) for x in response.json()]
@@ -54,7 +53,7 @@ def get_related_articles(keywords: list[str]) -> list[dict]:
     for keyword in keywords:
         response = requests.get(create_news_api_url(keyword))
         json = response.json()
-        print("Content:", json)
+        
         if json["status"] == "ok":
             content.extend(json["articles"])
         else:
@@ -88,22 +87,14 @@ async def process_category(category_name: str, keywords: list[str]) -> None:
     Process a news category: Fetch articles, summarize, and send to backend.
     """
 
-    print(f"Processing category: {category_name}")
-
     articles = get_related_articles(keywords)
 
-    print(articles, type(articles))
-    assert articles, f"No articles found for category {category_name}"
+    if DEV: article_subset = articles[:3]  # TODO: pivot to refining articles
 
-    # Select a subset of articles to avoid overwhelming the summarization API
-    article_subset = articles[:3]  # TODO: find a better way to handle this
-
-    # Summarize articles concurrently
     summaries = await asyncio.gather(
         *[summarize_article(article) for article in article_subset]
     )
 
-    # Send summarizations to backend concurrently
     await asyncio.gather(
         *[
             send_summarization_to_backend(
@@ -128,10 +119,8 @@ async def main():
         return
 
     # TEST: Process a single category
-    categories = categories[:3]  # TODO: Remove this line
-    # categories = [("Science", ["science"])]  # TODO: Remove this line
+    if DEV: categories = categories[0]  # TODO: Remove this line
 
-    # Process each category concurrently
     await asyncio.gather(
         *(process_category(name, keywords) for name, keywords in categories)
     )

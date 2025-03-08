@@ -4,13 +4,11 @@ class Database:
     def __init__(self):
         self.db = {
             'users': [
-                # fake data
                 User(name='John Doe', email='johndoe123@gmail.com', frequency=1, categories=[ 'Business', 'Entertainment' ]),
                 User(name='Jane Smith', email='janedoe234@yahoo.com', frequency=7, categories=[ 'Business', 'Science' ]),
             ],
             'summarizations': [],
             'categories': [
-                # fake data
                 Category(name='Business', keywords=[ 'business' ]),
                 Category(name='Entertainment', keywords=[ 'entertainment' ]),
                 Category(name='Health', keywords=[ 'health' ]),
