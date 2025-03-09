@@ -1,18 +1,21 @@
-# STL
 import requests
-from datetime import datetime, date, timedelta, timezone
+from datetime import date, timedelta
 import asyncio
-
-# Third Party
 from dotenv import load_dotenv
+from utils.summarize import summarize_news_article
+from common.config import BASE_URL, NEWS_API_KEY, DEV
+from common.clients import get_anthropic_client
+from datetime import datetime
+from pydantic import BaseModel
 
-# Local
-from summarization.main import summarize_articles, summarize_article
-from scraper.utils.news_api import convert_news_api_timestamp_to_int
-from backend.models import Summarization, Category
-from common.config import BASE_URL, NEWS_API_KEY
 
-### ------------------- 1. Utility Functions ------------------- ###
+def convert_news_api_timestamp_to_int(timestamp: str) -> int:
+    """
+    Convert a NewsAPI Timestamp in format "YYYY-MM-DDTHH:MM:SSZ string into a Unix integer timestamp.
+    """
+    dt = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+    return int(dt.timestamp())
+
 
 def get_categories() -> list[tuple[str, list[str]]]:
     response = requests.get(BASE_URL + "categories/")
@@ -53,7 +56,7 @@ def get_related_articles(keywords: list[str]) -> list[dict]:
     for keyword in keywords:
         response = requests.get(create_news_api_url(keyword))
         json = response.json()
-        
+
         if json["status"] == "ok":
             content.extend(json["articles"])
         else:
@@ -61,7 +64,12 @@ def get_related_articles(keywords: list[str]) -> list[dict]:
     return content
 
 
-### ------------------- 2. Summarization & Storage ------------------- ###
+# json format expected by backend api
+class Summarization(BaseModel):
+    summarization: str
+    link: str
+    timestamp: int
+    category: str
 
 
 async def send_summarization_to_backend(summary_obj: Summarization) -> None:
@@ -86,13 +94,18 @@ async def process_category(category_name: str, keywords: list[str]) -> None:
     """
     Process a news category: Fetch articles, summarize, and send to backend.
     """
+    print(f"processing category {category_name}")
 
     articles = get_related_articles(keywords)
 
-    if DEV: article_subset = articles[:3]  # TODO: pivot to refining articles
+    if DEV:
+        article_subset = articles[:3]  # TODO: pivot to refining articles
 
     summaries = await asyncio.gather(
-        *[summarize_article(article) for article in article_subset]
+        *[
+            summarize_news_article(article, get_anthropic_client())
+            for article in article_subset
+        ]
     )
 
     await asyncio.gather(
@@ -110,7 +123,6 @@ async def process_category(category_name: str, keywords: list[str]) -> None:
     )
 
 
-### ------------------- 3. Main Script ------------------- ###
 async def main():
 
     categories = get_categories()
@@ -119,7 +131,8 @@ async def main():
         return
 
     # TEST: Process a single category
-    if DEV: categories = categories[0]  # TODO: Remove this line
+    if DEV:
+        categories = categories[:3]  # TODO: Remove this line
 
     await asyncio.gather(
         *(process_category(name, keywords) for name, keywords in categories)
