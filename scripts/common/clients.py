@@ -6,6 +6,7 @@ load_dotenv()
 
 _anthropic_client = None
 
+
 def get_anthropic_client():
     """Returns a single global instance of the Anthropic client."""
     global _anthropic_client
