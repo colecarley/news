@@ -1,4 +1,5 @@
 from models import *
+from datetime import datetime
 
 
 class Database:
@@ -18,7 +19,14 @@ class Database:
                     categories=["Business", "Science"],
                 ),
             ],
-            "summarizations": [],
+            "summarizations": [
+                Summarization(
+                    summarization="This is a summarization",
+                    link="google.com",
+                    timestamp=datetime.today().microsecond(),
+                    category="Technology",
+                )
+            ],
             "categories": [
                 Category(name="Technology", keywords=["technology"]),
                 Category(name="Business", keywords=["business"]),
