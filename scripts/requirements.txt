@@ -2,3 +2,6 @@ anthropic
 python-dotenv
 requests
 pydantic
+
+langchain
+sentence_transformers

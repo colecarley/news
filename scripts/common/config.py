@@ -9,3 +9,7 @@ BASE_URL = os.getenv(
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 DEV = True
+
+SENTENCE_TRANSFORMER_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_CHUNK_SIZE = 512 # Unique to embedding model: Refer to documentation
+EMBEDDING_CHUNK_OVERLAP = 50
